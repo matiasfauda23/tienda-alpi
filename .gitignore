@@ -12,6 +12,9 @@ build/
 .env.*
 !.env.example
 
+# Cliente de Prisma generado (se regenera con "prisma generate")
+apps/api/src/generated/
+
 # Tests y cobertura
 coverage/
 playwright-report/
