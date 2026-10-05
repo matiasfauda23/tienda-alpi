@@ -1,0 +1,21 @@
+{
+  "name": "@tienda-alpi/precios",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cálculo de precios por escala de cantidad, compartido entre web y api",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

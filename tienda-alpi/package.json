@@ -6,7 +6,9 @@
     "db:levantar": "docker compose up -d",
     "db:detener": "docker compose down",
     "db:logs": "docker compose logs -f db",
-    "db:consola": "docker compose exec db psql -U ${POSTGRES_USER:-alpi} -d ${POSTGRES_DB:-tienda_alpi}"
+    "db:consola": "docker compose exec db psql -U ${POSTGRES_USER:-alpi} -d ${POSTGRES_DB:-tienda_alpi}",
+    "test": "pnpm -r test",
+    "build": "pnpm -r build"
   },
   "engines": {
     "node": ">=24"
