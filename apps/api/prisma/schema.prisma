@@ -1,0 +1,146 @@
+// Genera el cliente de Prisma en TypeScript, en formato CommonJS (el que usa NestJS)
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+// La URL de conexión está en prisma.config.ts
+datasource db {
+  provider = "postgresql"
+}
+
+// Agrupa productos: Mates, Termos, Vasos, Bombillas
+model Categoria {
+  id            String     @id @default(uuid()) @db.Uuid
+  nombre        String     @db.VarChar(80)
+  slug          String     @unique @db.VarChar(100)
+  orden         Int        @default(0)
+  activa        Boolean    @default(true)
+  productos     Producto[]
+  creadoEn      DateTime   @default(now()) @map("creado_en")
+  actualizadoEn DateTime   @updatedAt @map("actualizado_en")
+
+  @@map("categorias")
+}
+
+// Un producto del catálogo; el precio y el stock viven en sus variantes
+model Producto {
+  id            String           @id @default(uuid()) @db.Uuid
+  nombre        String           @db.VarChar(120)
+  slug          String           @unique @db.VarChar(140)
+  descripcion   String           @default("")
+  categoriaId   String           @map("categoria_id") @db.Uuid
+  categoria     Categoria        @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+  destacado     Boolean          @default(false)
+  nuevo         Boolean          @default(false)
+  activo        Boolean          @default(true)
+  variantes     Variante[]
+  imagenes      ImagenProducto[]
+  creadoEn      DateTime         @default(now()) @map("creado_en")
+  actualizadoEn DateTime         @updatedAt @map("actualizado_en")
+
+  @@index([categoriaId])
+  @@map("productos")
+}
+
+// Una variante de un producto (por ejemplo, un color) con su precio y stock
+model Variante {
+  id            String             @id @default(uuid()) @db.Uuid
+  productoId    String             @map("producto_id") @db.Uuid
+  producto      Producto           @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  sku           String             @unique @db.VarChar(60)
+  nombre        String             @db.VarChar(80)
+  colorHex      String?            @map("color_hex") @db.VarChar(7)
+  precio        Int // Precio de lista (primera escala), en pesos enteros
+  precioOferta  Int?               @map("precio_oferta")
+  stock         Int                @default(0)
+  orden         Int                @default(0)
+  preciosFijos  PrecioFijoEscala[]
+  creadoEn      DateTime           @default(now()) @map("creado_en")
+  actualizadoEn DateTime           @updatedAt @map("actualizado_en")
+
+  @@index([productoId])
+  @@map("variantes")
+}
+
+// Fotos de un producto; una de ellas es la principal
+model ImagenProducto {
+  id               String   @id @default(uuid()) @db.Uuid
+  productoId       String   @map("producto_id") @db.Uuid
+  producto         Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  url              String
+  publicId         String   @map("public_id")
+  textoAlternativo String   @default("") @map("texto_alternativo") @db.VarChar(160)
+  orden            Int      @default(0)
+  esPrincipal      Boolean  @default(false) @map("es_principal")
+  creadoEn         DateTime @default(now()) @map("creado_en")
+
+  @@index([productoId])
+  @@map("imagenes_producto")
+}
+
+// Escala de precio general: desde cuántas unidades aplica y con qué descuento
+model EscalaPrecio {
+  id                  String             @id @default(uuid()) @db.Uuid
+  nombre              String             @db.VarChar(60)
+  cantidadMinima      Int                @unique @map("cantidad_minima")
+  porcentajeDescuento Int                @default(0) @map("porcentaje_descuento")
+  preciosFijos        PrecioFijoEscala[]
+  creadoEn            DateTime           @default(now()) @map("creado_en")
+  actualizadoEn       DateTime           @updatedAt @map("actualizado_en")
+
+  @@map("escalas_precio")
+}
+
+// Precio fijo opcional de una variante en una escala (pisa el porcentaje)
+model PrecioFijoEscala {
+  varianteId     String       @map("variante_id") @db.Uuid
+  escalaId       String       @map("escala_id") @db.Uuid
+  precioUnitario Int          @map("precio_unitario")
+  variante       Variante     @relation(fields: [varianteId], references: [id], onDelete: Cascade)
+  escala         EscalaPrecio @relation(fields: [escalaId], references: [id], onDelete: Cascade)
+
+  @@id([varianteId, escalaId])
+  @@map("precios_fijos_escala")
+}
+
+// Usuario del panel (Marce)
+model Administrador {
+  id               String              @id @default(uuid()) @db.Uuid
+  email            String              @unique @db.VarChar(160)
+  hashContrasena   String              @map("hash_contrasena")
+  hashRefreshToken String?             @map("hash_refresh_token")
+  ultimoIngresoEn  DateTime?           @map("ultimo_ingreso_en")
+  registros        RegistroAuditoria[]
+  creadoEn         DateTime            @default(now()) @map("creado_en")
+  actualizadoEn    DateTime            @updatedAt @map("actualizado_en")
+
+  @@map("administradores")
+}
+
+// Textos editables del sitio: FAQ, condiciones, banner, número de WhatsApp
+model ContenidoSitio {
+  clave         String   @id @db.VarChar(60)
+  valor         Json
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  @@map("contenido_sitio")
+}
+
+// Historial de cambios hechos desde el panel (quién cambió qué y cuándo)
+model RegistroAuditoria {
+  id              String         @id @default(uuid()) @db.Uuid
+  administradorId String?        @map("administrador_id") @db.Uuid
+  administrador   Administrador? @relation(fields: [administradorId], references: [id], onDelete: SetNull)
+  accion          String         @db.VarChar(40)
+  entidad         String         @db.VarChar(40)
+  entidadId       String?        @map("entidad_id")
+  antes           Json?
+  despues         Json?
+  ip              String?        @db.VarChar(45)
+  creadoEn        DateTime       @default(now()) @map("creado_en")
+
+  @@index([entidad, entidadId])
+  @@map("registros_auditoria")
+}
