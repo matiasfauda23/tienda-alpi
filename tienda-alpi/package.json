@@ -1,0 +1,15 @@
+{
+  "name": "tienda-alpi",
+  "private": true,
+  "description": "Monorepo de Tienda Alpi: catálogo web con precios por escala",
+  "scripts": {
+    "db:levantar": "docker compose up -d",
+    "db:detener": "docker compose down",
+    "db:logs": "docker compose logs -f db",
+    "db:consola": "docker compose exec db psql -U ${POSTGRES_USER:-alpi} -d ${POSTGRES_DB:-tienda_alpi}"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.22.0"
+}

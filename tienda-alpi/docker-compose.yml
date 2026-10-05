@@ -1,0 +1,22 @@
+# Servicios para desarrollo local. Por ahora solo la base de datos.
+services:
+  db:
+    image: postgres:17-alpine        # PostgreSQL 17, versión liviana
+    container_name: tienda-alpi-db
+    restart: unless-stopped          # Se vuelve a levantar si se reinicia Docker
+    environment:                     # Toma los valores del archivo .env
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432" # Puerto de tu máquina : puerto del contenedor
+    volumes:
+      - datos_postgres:/var/lib/postgresql/data   # Los datos sobreviven aunque borres el contenedor
+    healthcheck:                     # Docker comprueba cada 5 s si la base está lista
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  datos_postgres:
