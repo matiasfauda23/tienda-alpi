@@ -1,0 +1,27 @@
+# Dependencias
+node_modules/
+
+# Builds
+dist/
+.next/
+out/
+build/
+
+# Variables de entorno: NUNCA se suben (tienen contraseñas y claves)
+.env
+.env.*
+!.env.example
+
+# Tests y cobertura
+coverage/
+playwright-report/
+test-results/
+
+# Logs y archivos del sistema
+*.log
+.DS_Store
+Thumbs.db
+
+# Caché de herramientas
+.turbo/
+*.tsbuildinfo
