@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { ErrorDePreciosFilter } from './comun/filtros/error-de-precios.filter';
 
 /** Arranca la API con seguridad básica, validación global, prefijo /api y apagado ordenado. */
 async function iniciarAplicacion(): Promise<void> {
@@ -10,6 +11,9 @@ async function iniciarAplicacion(): Promise<void> {
   const configuracion = app.get(ConfigService);
 
   configurarSeguridad(app, configuracion);
+
+  // Traduce los errores del paquete de precios a respuestas 400
+  app.useGlobalFilters(new ErrorDePreciosFilter());
 
   app.setGlobalPrefix('api');
   app.enableShutdownHooks();
@@ -31,10 +35,7 @@ function configurarSeguridad(
     credentials: true,
   });
 
-  // Valida cada petición con los DTOs:
-  // whitelist: descarta campos que no están en el DTO
-  // forbidNonWhitelisted: si mandan campos de más, responde 400
-  // transform: convierte el JSON recibido en una instancia del DTO
+  // Valida cada petición con los DTOs: descarta campos de más y convierte los datos al tipo del DTO
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
   );

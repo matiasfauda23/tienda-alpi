@@ -9,7 +9,8 @@
     "db:consola": "docker compose exec db psql -U ${POSTGRES_USER:-alpi} -d ${POSTGRES_DB:-tienda_alpi}",
     "test": "pnpm -r test",
     "build": "pnpm -r build",
-    "api:dev": "pnpm --filter @tienda-alpi/api start:dev"
+    "api:dev": "pnpm --filter @tienda-alpi/api start:dev",
+    "build:precios": "pnpm --filter @tienda-alpi/precios build"
   },
   "engines": {
     "node": ">=24"

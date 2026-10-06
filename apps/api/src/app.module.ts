@@ -5,8 +5,10 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { BaseDeDatosModule } from './base-de-datos/base-de-datos.module';
 import { CategoriasModule } from './categorias/categorias.module';
 import { validarEntorno } from './configuracion/validar-entorno';
-import { SaludModule } from './salud/salud.module';
+import { EscalasModule } from './escalas/escalas.module';
+import { PedidosModule } from './pedidos/pedidos.module';
 import { ProductosModule } from './productos/productos.module';
+import { SaludModule } from './salud/salud.module';
 
 /** Módulo raíz: configuración, límite de peticiones y módulos de la API. */
 @Module({
@@ -18,6 +20,8 @@ import { ProductosModule } from './productos/productos.module';
     SaludModule,
     CategoriasModule,
     ProductosModule,
+    EscalasModule,
+    PedidosModule,
   ],
   providers: [
     // Aplica el límite de peticiones a todos los endpoints
