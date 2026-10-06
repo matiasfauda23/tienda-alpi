@@ -5,12 +5,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CategoriasService } from '../categorias/categorias.service';
+import { PaginaDeResultados } from '../comun/paginacion';
 import { generarSlug } from '../comun/utilidades/slug';
+import { normalizarTexto } from '../comun/utilidades/texto';
+import { calcularCamposDerivados } from './campos-derivados';
 import { ActualizarProductoDto } from './dto/actualizar-producto.dto';
 import { ActualizarVarianteDto } from './dto/actualizar-variante.dto';
 import { CrearProductoDto } from './dto/crear-producto.dto';
 import { CrearVarianteDto } from './dto/crear-variante.dto';
-import { ProductoDetalle } from './producto.tipos';
+import { ListarProductosQueryDto } from './dto/listar-productos-query.dto';
+import { FiltrosCatalogo, ProductoDetalle } from './producto.tipos';
 import { ProductosRepository } from './productos.repository';
 
 /** Reglas de negocio de los productos y sus variantes. */
@@ -20,6 +24,22 @@ export class ProductosService {
     private readonly repositorio: ProductosRepository,
     private readonly categoriasService: CategoriasService,
   ) {}
+
+  /** Lista los productos visibles del catálogo con filtros, búsqueda, orden y paginación. */
+  async listarPublicos(query: ListarProductosQueryDto): Promise<PaginaDeResultados<ProductoDetalle>> {
+    this.validarRangoDePrecios(query.precioMin, query.precioMax);
+
+    const filtros = this.construirFiltros(query);
+    const { items, total } = await this.repositorio.listarPublicos(filtros);
+
+    return {
+      items,
+      total,
+      pagina: filtros.pagina,
+      porPagina: filtros.porPagina,
+      totalPaginas: Math.ceil(total / filtros.porPagina),
+    };
+  }
 
   /** Devuelve todos los productos, incluidos los ocultos (para el panel). */
   listarParaAdmin(): Promise<ProductoDetalle[]> {
@@ -52,7 +72,8 @@ export class ProductosService {
     await this.verificarSkusLibres(skus);
 
     const slug = await this.generarSlugDisponible(dto.nombre);
-    return this.repositorio.crear({ ...dto, slug });
+    const producto = await this.repositorio.crear({ ...dto, slug });
+    return this.sincronizarCamposDerivados(producto.id);
   }
 
   /** Modifica los datos de un producto; si cambia el nombre, también cambia su slug. */
@@ -67,7 +88,8 @@ export class ProductosService {
       ? { ...dto, slug: await this.generarSlugDisponible(dto.nombre, id) }
       : dto;
 
-    return this.repositorio.actualizar(id, datos);
+    await this.repositorio.actualizar(id, datos);
+    return this.sincronizarCamposDerivados(id);
   }
 
   /** Agrega una variante a un producto existente y devuelve el producto actualizado. */
@@ -78,7 +100,7 @@ export class ProductosService {
     await this.verificarSkusLibres([dto.sku]);
 
     await this.repositorio.agregarVariante(productoId, dto);
-    return this.obtenerPorIdOFallar(productoId);
+    return this.sincronizarCamposDerivados(productoId);
   }
 
   /** Modifica una variante y devuelve el producto actualizado. */
@@ -99,7 +121,7 @@ export class ProductosService {
     }
 
     await this.repositorio.actualizarVariante(varianteId, dto);
-    return this.obtenerPorIdOFallar(productoId);
+    return this.sincronizarCamposDerivados(productoId);
   }
 
   /** Elimina una variante, salvo que sea la única del producto. */
@@ -114,6 +136,39 @@ export class ProductosService {
     }
 
     await this.repositorio.eliminarVariante(varianteId);
+    await this.sincronizarCamposDerivados(productoId);
+  }
+
+  /** Recalcula y guarda el precio "desde" y el texto de búsqueda; devuelve el producto actualizado. */
+  private async sincronizarCamposDerivados(productoId: string): Promise<ProductoDetalle> {
+    const producto = await this.obtenerPorIdOFallar(productoId);
+    const campos = calcularCamposDerivados(producto);
+
+    await this.repositorio.actualizarCamposDerivados(productoId, campos);
+    return { ...producto, precioDesde: campos.precioDesde };
+  }
+
+  /** Convierte los filtros que llegan por la URL en filtros listos para la base. */
+  private construirFiltros(query: ListarProductosQueryDto): FiltrosCatalogo {
+    const texto = query.buscar ? normalizarTexto(query.buscar) : '';
+
+    return {
+      categorias: query.categoria ?? [],
+      texto: texto || undefined,
+      precioMin: query.precioMin,
+      precioMax: query.precioMax,
+      soloDestacados: query.destacados ?? false,
+      orden: query.orden,
+      pagina: query.pagina,
+      porPagina: query.porPagina,
+    };
+  }
+
+  /** Verifica que el precio mínimo no sea mayor que el máximo. */
+  private validarRangoDePrecios(precioMin?: number, precioMax?: number): void {
+    if (precioMin !== undefined && precioMax !== undefined && precioMin > precioMax) {
+      throw new BadRequestException('El precio mínimo no puede ser mayor que el máximo.');
+    }
   }
 
   /** Busca un producto por id; si no existe, responde 404. */

@@ -1,26 +1,78 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../base-de-datos/prisma.service';
+import { calcularSalto } from '../comun/paginacion';
+import { Prisma } from '../generated/prisma/client';
 import {
   CAMPOS_PRODUCTO,
   CAMPOS_VARIANTE,
+  CamposDerivados,
   DatosActualizarProducto,
   DatosActualizarVariante,
   DatosNuevoProducto,
   DatosVariante,
+  FiltrosCatalogo,
+  OrdenCatalogo,
   ProductoDetalle,
 } from './producto.tipos';
+
+/** Cómo se traduce cada opción de orden a Prisma. El "id" del final hace estable la paginación. */
+const ORDEN_CATALOGO: Record<OrdenCatalogo, Prisma.ProductoOrderByWithRelationInput[]> = {
+  recientes: [{ creadoEn: 'desc' }, { id: 'asc' }],
+  'precio-asc': [{ precioDesde: 'asc' }, { nombre: 'asc' }, { id: 'asc' }],
+  'precio-desc': [{ precioDesde: 'desc' }, { nombre: 'asc' }, { id: 'asc' }],
+  nombre: [{ nombre: 'asc' }, { id: 'asc' }],
+};
+
+/** Traduce los filtros del catálogo a una condición de Prisma. Solo incluye productos y categorías visibles. */
+function construirFiltroCatalogo(filtros: FiltrosCatalogo): Prisma.ProductoWhereInput {
+  const where: Prisma.ProductoWhereInput = { activo: true, categoria: { activa: true } };
+
+  if (filtros.categorias.length > 0) {
+    where.categoria = { activa: true, slug: { in: filtros.categorias } };
+  }
+  if (filtros.texto) {
+    where.textoBusqueda = { contains: filtros.texto };
+  }
+  if (filtros.precioMin !== undefined || filtros.precioMax !== undefined) {
+    where.precioDesde = { gte: filtros.precioMin, lte: filtros.precioMax };
+  }
+  if (filtros.soloDestacados) {
+    where.destacado = true;
+  }
+
+  return where;
+}
 
 /** Acceso a las tablas de productos y variantes. Solo consultas, sin reglas de negocio. */
 @Injectable()
 export class ProductosRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Lista todos los productos, del más nuevo al más viejo. */
+  /** Lista todos los productos, del más nuevo al más viejo (para el panel). */
   listar(): Promise<ProductoDetalle[]> {
     return this.prisma.producto.findMany({
       orderBy: { creadoEn: 'desc' },
       select: CAMPOS_PRODUCTO,
     });
+  }
+
+  /** Busca productos visibles con filtros, orden y paginación; devuelve la página y el total. */
+  async listarPublicos(filtros: FiltrosCatalogo): Promise<{ items: ProductoDetalle[]; total: number }> {
+    const where = construirFiltroCatalogo(filtros);
+
+    // Las dos consultas se ejecutan juntas, en una misma transacción
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.producto.findMany({
+        where,
+        orderBy: ORDEN_CATALOGO[filtros.orden],
+        skip: calcularSalto(filtros.pagina, filtros.porPagina),
+        take: filtros.porPagina,
+        select: CAMPOS_PRODUCTO,
+      }),
+      this.prisma.producto.count({ where }),
+    ]);
+
+    return { items, total };
   }
 
   /** Busca un producto por su id; devuelve null si no existe. */
@@ -62,6 +114,11 @@ export class ProductosRepository {
   /** Actualiza los campos indicados de un producto y lo devuelve. */
   actualizar(id: string, datos: DatosActualizarProducto): Promise<ProductoDetalle> {
     return this.prisma.producto.update({ where: { id }, data: datos, select: CAMPOS_PRODUCTO });
+  }
+
+  /** Guarda los campos calculados de un producto (precio desde y texto de búsqueda). */
+  async actualizarCamposDerivados(id: string, campos: CamposDerivados): Promise<void> {
+    await this.prisma.producto.update({ where: { id }, data: campos });
   }
 
   /** Busca una variante por su id, incluyendo a qué producto pertenece. */

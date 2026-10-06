@@ -18,21 +18,23 @@ const PRODUCTO: ProductoDetalle = {
   destacado: false,
   nuevo: false,
   activo: true,
+  precioDesde: 10000,
   categoria: { id: ID_CATEGORIA, nombre: 'Mates', slug: 'mates', activa: true },
-  variantes: [],
+  variantes: [
+    {
+      id: ID_VARIANTE,
+      sku: 'MATE-IMP-NEGRO',
+      nombre: 'Negro',
+      colorHex: null,
+      precio: 10000,
+      precioOferta: 9000,
+      stock: 10,
+      orden: 0,
+    },
+  ],
 };
 
-const VARIANTE = {
-  id: ID_VARIANTE,
-  productoId: ID_PRODUCTO,
-  sku: 'MATE-IMP-NEGRO',
-  nombre: 'Negro',
-  colorHex: null,
-  precio: 10000,
-  precioOferta: null,
-  stock: 10,
-  orden: 0,
-};
+const VARIANTE = { ...PRODUCTO.variantes[0], productoId: ID_PRODUCTO, precioOferta: null };
 
 /** Arma un DTO de producto válido con dos variantes. */
 function crearDtoValido(): CrearProductoDto {
@@ -50,12 +52,14 @@ function crearDtoValido(): CrearProductoDto {
 function crearRepositorioSimulado() {
   return {
     listar: jest.fn(),
+    listarPublicos: jest.fn(),
     buscarPorId: jest.fn(),
     buscarPorSlug: jest.fn(),
     existeSlug: jest.fn(),
     skusEnUso: jest.fn(),
     crear: jest.fn(),
     actualizar: jest.fn(),
+    actualizarCamposDerivados: jest.fn(),
     buscarVariante: jest.fn(),
     agregarVariante: jest.fn(),
     actualizarVariante: jest.fn(),
@@ -84,16 +88,43 @@ describe('ProductosService', () => {
     servicio = modulo.get(ProductosService);
   });
 
+  describe('listarPublicos', () => {
+    const consultaBase = { orden: 'recientes' as const, pagina: 1, porPagina: 12 };
+
+    it('normaliza la búsqueda y calcula el total de páginas', async () => {
+      repositorio.listarPublicos.mockResolvedValue({ items: [PRODUCTO], total: 25 });
+
+      const resultado = await servicio.listarPublicos({ ...consultaBase, buscar: 'Mate TÉRMICO' });
+
+      expect(repositorio.listarPublicos).toHaveBeenCalledWith(
+        expect.objectContaining({ texto: 'mate termico', categorias: [] }),
+      );
+      expect(resultado.totalPaginas).toBe(3);
+    });
+
+    it('rechaza un precio mínimo mayor que el máximo', async () => {
+      await expect(
+        servicio.listarPublicos({ ...consultaBase, precioMin: 20000, precioMax: 100 }),
+      ).rejects.toThrow(BadRequestException);
+      expect(repositorio.listarPublicos).not.toHaveBeenCalled();
+    });
+  });
+
   describe('crear', () => {
-    it('crea el producto con su slug cuando todo es válido', async () => {
+    it('crea el producto con su slug y calcula su precio desde', async () => {
       repositorio.skusEnUso.mockResolvedValue([]);
       repositorio.existeSlug.mockResolvedValue(false);
       repositorio.crear.mockResolvedValue(PRODUCTO);
+      repositorio.buscarPorId.mockResolvedValue(PRODUCTO);
 
       await servicio.crear(crearDtoValido());
 
       expect(repositorio.crear).toHaveBeenCalledWith(
         expect.objectContaining({ slug: 'mate-imperial', categoriaId: ID_CATEGORIA }),
+      );
+      expect(repositorio.actualizarCamposDerivados).toHaveBeenCalledWith(
+        ID_PRODUCTO,
+        expect.objectContaining({ precioDesde: 9000 }),
       );
     });
 
@@ -171,13 +202,15 @@ describe('ProductosService', () => {
       expect(repositorio.eliminarVariante).not.toHaveBeenCalled();
     });
 
-    it('borra la variante si quedan otras', async () => {
+    it('borra la variante si quedan otras y recalcula los campos derivados', async () => {
       repositorio.buscarVariante.mockResolvedValue(VARIANTE);
       repositorio.contarVariantes.mockResolvedValue(3);
+      repositorio.buscarPorId.mockResolvedValue(PRODUCTO);
 
       await servicio.eliminarVariante(ID_PRODUCTO, ID_VARIANTE);
 
       expect(repositorio.eliminarVariante).toHaveBeenCalledWith(ID_VARIANTE);
+      expect(repositorio.actualizarCamposDerivados).toHaveBeenCalled();
     });
   });
 });

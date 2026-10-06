@@ -35,12 +35,15 @@ model Producto {
   destacado     Boolean          @default(false)
   nuevo         Boolean          @default(false)
   activo        Boolean          @default(true)
+  precioDesde   Int              @default(0) @map("precio_desde") // Precio más bajo de sus variantes (para filtrar y ordenar)
+  textoBusqueda String           @default("") @map("texto_busqueda") // Texto sin tildes para buscar
   variantes     Variante[]
   imagenes      ImagenProducto[]
   creadoEn      DateTime         @default(now()) @map("creado_en")
   actualizadoEn DateTime         @updatedAt @map("actualizado_en")
 
   @@index([categoriaId])
+  @@index([activo, precioDesde])
   @@map("productos")
 }
 
