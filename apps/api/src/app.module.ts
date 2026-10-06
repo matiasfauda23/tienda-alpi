@@ -11,6 +11,7 @@ import { ContenidoModule } from './contenido/contenido.module';
 import { ProductosModule } from './productos/productos.module';
 import { AuthModule } from './auth/auth.module';
 import { SaludModule } from './salud/salud.module';
+import { AuditoriaModule } from './auditoria/auditoria.module';
 
 /** Módulo raíz: configuración, límite de peticiones y módulos de la API. */
 @Module({
@@ -26,6 +27,7 @@ import { SaludModule } from './salud/salud.module';
     EscalasModule,
     PedidosModule,
     ContenidoModule,
+    AuditoriaModule,
   ],
   providers: [
     // Aplica el límite de peticiones a todos los endpoints

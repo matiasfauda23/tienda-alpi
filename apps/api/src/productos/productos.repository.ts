@@ -10,6 +10,7 @@ import {
   DatosActualizarVariante,
   DatosNuevoProducto,
   DatosVariante,
+  DatosPrecioFijo,
   FiltrosCatalogo,
   OrdenCatalogo,
   ProductoDetalle,
@@ -147,5 +148,14 @@ export class ProductosRepository {
   /** Cuenta cuántas variantes tiene un producto. */
   contarVariantes(productoId: string): Promise<number> {
     return this.prisma.variante.count({ where: { productoId } });
+  }
+  /** Reemplaza todos los precios fijos de una variante, en una sola transacción. */
+  async reemplazarPreciosFijos(varianteId: string, precios: DatosPrecioFijo[]): Promise<void> {
+    await this.prisma.$transaction([
+      this.prisma.precioFijoEscala.deleteMany({ where: { varianteId } }),
+      this.prisma.precioFijoEscala.createMany({
+        data: precios.map((precio) => ({ ...precio, varianteId })),
+      }),
+    ]);
   }
 }

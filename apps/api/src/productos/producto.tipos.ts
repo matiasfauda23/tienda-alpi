@@ -10,6 +10,7 @@ export const CAMPOS_VARIANTE = {
   precioOferta: true,
   stock: true,
   orden: true,
+  preciosFijos: { select: { escalaId: true, precioUnitario: true } },
 } satisfies Prisma.VarianteSelect;
 
 /** Campos de un producto que devuelve la API, con su categoría y sus variantes ordenadas. */
@@ -81,3 +82,9 @@ export type DatosActualizarProducto = Partial<Omit<DatosNuevoProducto, 'variante
 
 /** Datos que se pueden cambiar de una variante. */
 export type DatosActualizarVariante = Partial<DatosVariante>;
+
+/** Precio fijo de una variante en una escala, para guardar en la base. */
+export type DatosPrecioFijo = {
+  escalaId: string;
+  precioUnitario: number;
+};

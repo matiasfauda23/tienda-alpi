@@ -4,10 +4,11 @@ import { ProductosAdminController } from './productos-admin.controller';
 import { ProductosController } from './productos.controller';
 import { ProductosRepository } from './productos.repository';
 import { ProductosService } from './productos.service';
+import { EscalasModule } from '../escalas/escalas.module';
 
 /** Agrupa todo lo de productos. Importa CategoriasModule para usar CategoriasService. */
 @Module({
-  imports: [CategoriasModule],
+  imports: [CategoriasModule, EscalasModule],
   controllers: [ProductosController, ProductosAdminController],
   providers: [ProductosService, ProductosRepository],
 })

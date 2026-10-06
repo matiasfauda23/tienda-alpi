@@ -16,6 +16,7 @@ import { CrearProductoDto } from './dto/crear-producto.dto';
 import { CrearVarianteDto } from './dto/crear-variante.dto';
 import { ProductoDetalle } from './producto.tipos';
 import { ProductosService } from './productos.service';
+import { ReemplazarPreciosFijosDto } from './dto/reemplazar-precios-fijos.dto';
 
 /**
  * Endpoints del panel para administrar productos y variantes.

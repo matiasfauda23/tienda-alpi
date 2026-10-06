@@ -16,13 +16,17 @@ import { CrearVarianteDto } from './dto/crear-variante.dto';
 import { ListarProductosQueryDto } from './dto/listar-productos-query.dto';
 import { FiltrosCatalogo, ProductoDetalle } from './producto.tipos';
 import { ProductosRepository } from './productos.repository';
+import { EscalasService } from '../escalas/escalas.service';
+import { ReemplazarPreciosFijosDto } from './dto/reemplazar-precios-fijos.dto';
+import { buscarErrorEnPreciosPorEscala } from './precios-por-escala';
 
 /** Reglas de negocio de los productos y sus variantes. */
 @Injectable()
 export class ProductosService {
   constructor(
     private readonly repositorio: ProductosRepository,
-    private readonly categoriasService: CategoriasService,
+      private readonly categoriasService: CategoriasService,
+    private readonly escalasService: EscalasService,
   ) {}
 
   /** Lista los productos visibles del catálogo con filtros, búsqueda, orden y paginación. */
@@ -138,6 +142,20 @@ export class ProductosService {
     await this.repositorio.eliminarVariante(varianteId);
     await this.sincronizarCamposDerivados(productoId);
   }
+  /** Reemplaza los precios fijos de una variante, verificando que comprar más nunca salga más caro. */
+  async reemplazarPreciosFijos(
+    productoId: string,
+    varianteId: string,
+    dto: ReemplazarPreciosFijosDto,
+  ): Promise<ProductoDetalle> {
+    const variante = await this.obtenerVarianteDelProducto(productoId, varianteId);
+    const escalas = await this.escalasService.listar();
+
+    this.validarPreciosFijos(variante.precio, escalas, dto);
+
+    await this.repositorio.reemplazarPreciosFijos(varianteId, dto.precios);
+    return this.obtenerPorIdOFallar(productoId);
+  }
 
   /** Recalcula y guarda el precio "desde" y el texto de búsqueda; devuelve el producto actualizado. */
   private async sincronizarCamposDerivados(productoId: string): Promise<ProductoDetalle> {
@@ -197,6 +215,30 @@ export class ProductosService {
       throw new BadRequestException(
         `El precio de oferta ($${precioOferta}) debe ser menor que el precio ($${precio}).`,
       );
+    }
+  }
+
+  /** Verifica que las escalas existan, no se repitan y que el precio por unidad nunca suba con la cantidad. */
+  private validarPreciosFijos(
+    precioBase: number,
+    escalas: { id: string; nombre: string; cantidadMinima: number; porcentajeDescuento: number }[],
+    dto: ReemplazarPreciosFijosDto,
+  ): void {
+    const idsEnviados = dto.precios.map((precio) => precio.escalaId);
+    if (new Set(idsEnviados).size !== idsEnviados.length) {
+      throw new BadRequestException('Hay una escala repetida en los precios fijos.');
+    }
+
+    const idsExistentes = new Set(escalas.map((escala) => escala.id));
+    const desconocidas = idsEnviados.filter((id) => !idsExistentes.has(id));
+    if (desconocidas.length > 0) {
+      throw new BadRequestException(`Estas escalas no existen: ${desconocidas.join(', ')}.`);
+    }
+
+    const preciosFijos = new Map(dto.precios.map((precio) => [precio.escalaId, precio.precioUnitario]));
+    const error = buscarErrorEnPreciosPorEscala(precioBase, escalas, preciosFijos);
+    if (error) {
+      throw new BadRequestException(error);
     }
   }
 

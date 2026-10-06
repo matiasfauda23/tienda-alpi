@@ -5,6 +5,7 @@ import { CrearProductoDto } from './dto/crear-producto.dto';
 import { ProductoDetalle } from './producto.tipos';
 import { ProductosRepository } from './productos.repository';
 import { ProductosService } from './productos.service';
+import { EscalasService } from '../escalas/escalas.service';
 
 const ID_CATEGORIA = '11111111-1111-4111-8111-111111111111';
 const ID_PRODUCTO = '22222222-2222-4222-8222-222222222222';
@@ -30,10 +31,15 @@ const PRODUCTO: ProductoDetalle = {
       precioOferta: 9000,
       stock: 10,
       orden: 0,
+      preciosFijos: [],
     },
   ],
 };
-
+const ESCALAS = [
+  { id: 'e1', nombre: 'Minorista', cantidadMinima: 1, porcentajeDescuento: 0 },
+  { id: 'e2', nombre: 'Mayorista', cantidadMinima: 100, porcentajeDescuento: 10 },
+  { id: 'e3', nombre: 'Distribuidor', cantidadMinima: 500, porcentajeDescuento: 20 },
+];
 const VARIANTE = { ...PRODUCTO.variantes[0], productoId: ID_PRODUCTO, precioOferta: null };
 
 /** Arma un DTO de producto válido con dos variantes. */
@@ -65,6 +71,7 @@ function crearRepositorioSimulado() {
     actualizarVariante: jest.fn(),
     eliminarVariante: jest.fn(),
     contarVariantes: jest.fn(),
+    reemplazarPreciosFijos: jest.fn(),
   };
 }
 
@@ -72,16 +79,19 @@ describe('ProductosService', () => {
   let servicio: ProductosService;
   let repositorio: ReturnType<typeof crearRepositorioSimulado>;
   let categoriasService: { verificarQueExiste: jest.Mock };
+  let escalasService: { listar: jest.Mock };
 
   beforeEach(async () => {
     repositorio = crearRepositorioSimulado();
     categoriasService = { verificarQueExiste: jest.fn().mockResolvedValue(undefined) };
+    escalasService = { listar: jest.fn().mockResolvedValue(ESCALAS) };
 
     const modulo = await Test.createTestingModule({
       providers: [
         ProductosService,
         { provide: ProductosRepository, useValue: repositorio },
         { provide: CategoriasService, useValue: categoriasService },
+        { provide: EscalasService, useValue: escalasService },
       ],
     }).compile();
 
@@ -213,4 +223,54 @@ describe('ProductosService', () => {
       expect(repositorio.actualizarCamposDerivados).toHaveBeenCalled();
     });
   });
+  describe('reemplazarPreciosFijos', () => {
+    beforeEach(() => {
+      repositorio.buscarVariante.mockResolvedValue(VARIANTE);
+      repositorio.buscarPorId.mockResolvedValue(PRODUCTO);
+    });
+
+    it('guarda precios fijos que bajan al subir de escala', async () => {
+      const precios = [{ escalaId: 'e2', precioUnitario: 8500 }];
+
+      await servicio.reemplazarPreciosFijos(ID_PRODUCTO, ID_VARIANTE, { precios });
+
+      expect(repositorio.reemplazarPreciosFijos).toHaveBeenCalledWith(ID_VARIANTE, precios);
+    });
+
+    it('rechaza un precio fijo que hace más caro comprar más', async () => {
+      // Mayorista queda en $9.000 (10 %); un fijo de $9.500 en Distribuidor sería más caro
+      await expect(
+        servicio.reemplazarPreciosFijos(ID_PRODUCTO, ID_VARIANTE, {
+          precios: [{ escalaId: 'e3', precioUnitario: 9500 }],
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(repositorio.reemplazarPreciosFijos).not.toHaveBeenCalled();
+    });
+
+    it('rechaza una escala que no existe', async () => {
+      await expect(
+        servicio.reemplazarPreciosFijos(ID_PRODUCTO, ID_VARIANTE, {
+          precios: [{ escalaId: 'e9', precioUnitario: 8000 }],
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rechaza la misma escala repetida', async () => {
+      await expect(
+        servicio.reemplazarPreciosFijos(ID_PRODUCTO, ID_VARIANTE, {
+          precios: [
+            { escalaId: 'e2', precioUnitario: 8500 },
+            { escalaId: 'e2', precioUnitario: 8400 },
+          ],
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('acepta una lista vacía para borrar todos los precios fijos', async () => {
+      await servicio.reemplazarPreciosFijos(ID_PRODUCTO, ID_VARIANTE, { precios: [] });
+
+      expect(repositorio.reemplazarPreciosFijos).toHaveBeenCalledWith(ID_VARIANTE, []);
+    });
+  });
+
 });
