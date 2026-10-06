@@ -1,9 +1,11 @@
+import { Publico } from '../auth/decoradores/publico.decorator';
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { CalcularPedidoDto } from './dto/calcular-pedido.dto';
 import { PedidoCalculado } from './pedido.tipos';
 import { PedidosService } from './pedidos.service';
 
 /** Endpoints públicos del armador de pedido. */
+@Publico()
 @Controller('pedidos')
 export class PedidosController {
   constructor(private readonly pedidosService: PedidosService) {}

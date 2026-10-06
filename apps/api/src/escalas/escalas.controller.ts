@@ -1,8 +1,10 @@
+import { Publico } from '../auth/decoradores/publico.decorator';
 import { Controller, Get } from '@nestjs/common';
 import { EscalaResumen } from './escala.tipos';
 import { EscalasService } from './escalas.service';
 
 /** Endpoint público de escalas: el sitio las muestra como tabla de precios por cantidad. */
+@Publico()
 @Controller('escalas')
 export class EscalasController {
   constructor(private readonly escalasService: EscalasService) {}

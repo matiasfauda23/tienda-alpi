@@ -8,6 +8,7 @@ import { validarEntorno } from './configuracion/validar-entorno';
 import { EscalasModule } from './escalas/escalas.module';
 import { PedidosModule } from './pedidos/pedidos.module';
 import { ProductosModule } from './productos/productos.module';
+import { AuthModule } from './auth/auth.module';
 import { SaludModule } from './salud/salud.module';
 
 /** Módulo raíz: configuración, límite de peticiones y módulos de la API. */
@@ -17,6 +18,7 @@ import { SaludModule } from './salud/salud.module';
     // Máximo 100 peticiones por minuto por IP (el login tendrá un límite más estricto)
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     BaseDeDatosModule,
+    AuthModule,
     SaludModule,
     CategoriasModule,
     ProductosModule,

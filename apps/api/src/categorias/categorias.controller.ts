@@ -1,8 +1,10 @@
+import { Publico } from '../auth/decoradores/publico.decorator';
 import { Controller, Get, Param } from '@nestjs/common';
 import { CategoriaResumen } from './categoria.tipos';
 import { CategoriasService } from './categorias.service';
 
 /** Endpoints públicos de categorías, para el sitio web. */
+@Publico()
 @Controller('categorias')
 export class CategoriasController {
   constructor(private readonly categoriasService: CategoriasService) {}

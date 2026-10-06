@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { ErrorDePreciosFilter } from './comun/filtros/error-de-precios.filter';
@@ -21,7 +22,7 @@ async function iniciarAplicacion(): Promise<void> {
   await app.listen(configuracion.get<number>('PORT', 3001));
 }
 
-/** Aplica cabeceras de seguridad, CORS restringido al frontend y validación de todos los datos de entrada. */
+/** Aplica cabeceras de seguridad, lectura de cookies, CORS restringido y validación de los datos de entrada. */
 function configurarSeguridad(
   app: Awaited<ReturnType<typeof NestFactory.create>>,
   configuracion: ConfigService,
@@ -29,7 +30,10 @@ function configurarSeguridad(
   // Cabeceras HTTP que protegen contra ataques comunes del navegador
   app.use(helmet());
 
-  // Solo el frontend puede llamar a la API desde un navegador
+  // Lee las cookies de cada petición (ahí viajan los tokens de sesión)
+  app.use(cookieParser());
+
+  // Solo el frontend puede llamar a la API desde un navegador, y puede mandar cookies
   app.enableCors({
     origin: configuracion.get<string>('URL_FRONTEND', 'http://localhost:3000'),
     credentials: true,

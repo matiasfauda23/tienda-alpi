@@ -1,3 +1,4 @@
+import { Publico } from '../auth/decoradores/publico.decorator';
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { PaginaDeResultados } from '../comun/paginacion';
 import { ListarProductosQueryDto } from './dto/listar-productos-query.dto';
@@ -5,6 +6,7 @@ import { ProductoDetalle } from './producto.tipos';
 import { ProductosService } from './productos.service';
 
 /** Endpoints públicos de productos, para el sitio web. */
+@Publico()
 @Controller('productos')
 export class ProductosController {
   constructor(private readonly productosService: ProductosService) {}
