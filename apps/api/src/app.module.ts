@@ -7,6 +7,7 @@ import { CategoriasModule } from './categorias/categorias.module';
 import { validarEntorno } from './configuracion/validar-entorno';
 import { EscalasModule } from './escalas/escalas.module';
 import { PedidosModule } from './pedidos/pedidos.module';
+import { ContenidoModule } from './contenido/contenido.module';
 import { ProductosModule } from './productos/productos.module';
 import { AuthModule } from './auth/auth.module';
 import { SaludModule } from './salud/salud.module';
@@ -24,6 +25,7 @@ import { SaludModule } from './salud/salud.module';
     ProductosModule,
     EscalasModule,
     PedidosModule,
+    ContenidoModule,
   ],
   providers: [
     // Aplica el límite de peticiones a todos los endpoints
