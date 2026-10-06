@@ -6,6 +6,7 @@ import { BaseDeDatosModule } from './base-de-datos/base-de-datos.module';
 import { CategoriasModule } from './categorias/categorias.module';
 import { validarEntorno } from './configuracion/validar-entorno';
 import { SaludModule } from './salud/salud.module';
+import { ProductosModule } from './productos/productos.module';
 
 /** Módulo raíz: configuración, límite de peticiones y módulos de la API. */
 @Module({
@@ -16,6 +17,7 @@ import { SaludModule } from './salud/salud.module';
     BaseDeDatosModule,
     SaludModule,
     CategoriasModule,
+    ProductosModule,
   ],
   providers: [
     // Aplica el límite de peticiones a todos los endpoints

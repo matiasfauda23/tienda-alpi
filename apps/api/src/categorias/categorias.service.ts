@@ -65,6 +65,10 @@ export class CategoriasService {
 
     await this.repositorio.eliminar(id);
   }
+  /** Verifica que exista una categoría con ese id; si no, responde 404. Lo usan otros módulos. */
+  async verificarQueExiste(id: string): Promise<void> {
+    await this.obtenerPorIdOFallar(id);
+  }
 
   /** Busca una categoría por id; si no existe, responde 404. */
   private async obtenerPorIdOFallar(id: string): Promise<CategoriaResumen> {
