@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { PlanillasModule } from './planillas/planillas.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { BaseDeDatosModule } from './base-de-datos/base-de-datos.module';
@@ -28,6 +29,7 @@ import { AuditoriaModule } from './auditoria/auditoria.module';
     PedidosModule,
     ContenidoModule,
     AuditoriaModule,
+    PlanillasModule,
   ],
   providers: [
     // Aplica el límite de peticiones a todos los endpoints

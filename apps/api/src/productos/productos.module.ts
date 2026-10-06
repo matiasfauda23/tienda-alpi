@@ -11,5 +11,6 @@ import { EscalasModule } from '../escalas/escalas.module';
   imports: [CategoriasModule, EscalasModule],
   controllers: [ProductosController, ProductosAdminController],
   providers: [ProductosService, ProductosRepository],
+  exports: [ProductosService],
 })
 export class ProductosModule {}

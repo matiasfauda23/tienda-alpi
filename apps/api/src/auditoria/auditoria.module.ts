@@ -5,7 +5,10 @@ import { AuditoriaInterceptor } from './auditoria.interceptor';
 import { AuditoriaRepository } from './auditoria.repository';
 import { AuditoriaService } from './auditoria.service';
 
-/** Auditoría del panel: registra automáticamente cada cambio con un interceptor global. */
+/**
+ * Auditoría del panel: registra automáticamente cada cambio con un interceptor global.
+ * Exporta el servicio para los módulos que registran a mano con más detalle (por ejemplo, planillas).
+ */
 @Module({
   controllers: [AuditoriaAdminController],
   providers: [
@@ -13,5 +16,6 @@ import { AuditoriaService } from './auditoria.service';
     AuditoriaRepository,
     { provide: APP_INTERCEPTOR, useClass: AuditoriaInterceptor },
   ],
+  exports: [AuditoriaService],
 })
 export class AuditoriaModule {}

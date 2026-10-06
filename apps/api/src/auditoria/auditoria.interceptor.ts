@@ -1,8 +1,10 @@
 import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { Observable, tap } from 'rxjs';
 import { PeticionAutenticada } from '../auth/auth.tipos';
 import { armarRegistro } from './armar-registro';
 import { AuditoriaService } from './auditoria.service';
+import { CLAVE_NO_AUDITAR } from './no-auditar.decorator';
 
 /** Métodos HTTP que modifican datos. */
 const METODOS_QUE_MODIFICAN = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
@@ -15,13 +17,20 @@ const PREFIJO_ADMIN = '/api/admin/';
 export class AuditoriaInterceptor implements NestInterceptor {
   private readonly logger = new Logger(AuditoriaInterceptor.name);
 
-  constructor(private readonly auditoriaService: AuditoriaService) {}
+  constructor(
+    private readonly auditoriaService: AuditoriaService,
+    private readonly reflector: Reflector,
+  ) {}
 
   /** Deja pasar la petición y, si fue un cambio del panel que salió bien, lo registra. */
   intercept(contexto: ExecutionContext, siguiente: CallHandler): Observable<unknown> {
     const peticion = contexto.switchToHttp().getRequest<PeticionAutenticada>();
 
-    if (!this.esCambioDelPanel(peticion)) {
+    const marcadoNoAuditar = this.reflector.getAllAndOverride<boolean>(CLAVE_NO_AUDITAR, [
+      contexto.getHandler(),
+      contexto.getClass(),
+    ]);
+    if (marcadoNoAuditar || !this.esCambioDelPanel(peticion)) {
       return siguiente.handle();
     }
 

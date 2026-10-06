@@ -4,28 +4,29 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import type { EscalaPrecio } from '@tienda-alpi/precios';
 import { CategoriasService } from '../categorias/categorias.service';
 import { PaginaDeResultados } from '../comun/paginacion';
 import { generarSlug } from '../comun/utilidades/slug';
 import { normalizarTexto } from '../comun/utilidades/texto';
+import { EscalasService } from '../escalas/escalas.service';
 import { calcularCamposDerivados } from './campos-derivados';
 import { ActualizarProductoDto } from './dto/actualizar-producto.dto';
 import { ActualizarVarianteDto } from './dto/actualizar-variante.dto';
 import { CrearProductoDto } from './dto/crear-producto.dto';
 import { CrearVarianteDto } from './dto/crear-variante.dto';
 import { ListarProductosQueryDto } from './dto/listar-productos-query.dto';
-import { FiltrosCatalogo, ProductoDetalle } from './producto.tipos';
-import { ProductosRepository } from './productos.repository';
-import { EscalasService } from '../escalas/escalas.service';
 import { ReemplazarPreciosFijosDto } from './dto/reemplazar-precios-fijos.dto';
 import { buscarErrorEnPreciosPorEscala } from './precios-por-escala';
+import { FiltrosCatalogo, ProductoDetalle } from './producto.tipos';
+import { ProductosRepository } from './productos.repository';
 
 /** Reglas de negocio de los productos y sus variantes. */
 @Injectable()
 export class ProductosService {
   constructor(
     private readonly repositorio: ProductosRepository,
-      private readonly categoriasService: CategoriasService,
+    private readonly categoriasService: CategoriasService,
     private readonly escalasService: EscalasService,
   ) {}
 
@@ -142,6 +143,7 @@ export class ProductosService {
     await this.repositorio.eliminarVariante(varianteId);
     await this.sincronizarCamposDerivados(productoId);
   }
+
   /** Reemplaza los precios fijos de una variante, verificando que comprar más nunca salga más caro. */
   async reemplazarPreciosFijos(
     productoId: string,
@@ -155,6 +157,11 @@ export class ProductosService {
 
     await this.repositorio.reemplazarPreciosFijos(varianteId, dto.precios);
     return this.obtenerPorIdOFallar(productoId);
+  }
+
+  /** Recalcula el precio "desde" y el texto de búsqueda de un producto (lo usa la importación de planillas). */
+  async recalcularCamposDerivados(productoId: string): Promise<void> {
+    await this.sincronizarCamposDerivados(productoId);
   }
 
   /** Recalcula y guarda el precio "desde" y el texto de búsqueda; devuelve el producto actualizado. */
@@ -221,7 +228,7 @@ export class ProductosService {
   /** Verifica que las escalas existan, no se repitan y que el precio por unidad nunca suba con la cantidad. */
   private validarPreciosFijos(
     precioBase: number,
-    escalas: { id: string; nombre: string; cantidadMinima: number; porcentajeDescuento: number }[],
+    escalas: EscalaPrecio[],
     dto: ReemplazarPreciosFijosDto,
   ): void {
     const idsEnviados = dto.precios.map((precio) => precio.escalaId);
