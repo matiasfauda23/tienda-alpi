@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+/* Paleta de Tienda Alpi (contraste verificado con WCAG AA) */
+@theme {
+  --color-fondo: #faf8f4; /* Fondo general, blanco cálido */
+  --color-superficie: #ffffff; /* Tarjetas, encabezado y pie */
+  --color-texto: #1f1f1f; /* Texto principal */
+  --color-texto-suave: #5e5a55; /* Texto secundario */
+  --color-acento: #5f6e45; /* Verde oliva: botones y links */
+  --color-acento-oscuro: #46522f; /* Acento al pasar el mouse */
+  --color-acento-suave: #eef0e6; /* Fondos destacados */
+  --color-acento-tinta: #3f4a2c; /* Texto sobre fondos destacados */
+  --color-oferta: #a4532f; /* Ofertas y "últimas unidades" */
+  --color-borde: #e4e0d8; /* Líneas divisorias */
+}
+
+/* Tipografías: "inline" porque las variables las crea next/font en el layout */
+@theme inline {
+  --font-titulos: var(--font-fraunces), Georgia, serif;
+  --font-texto: var(--font-manrope), system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: var(--font-texto);
+  -webkit-font-smoothing: antialiased;
+}

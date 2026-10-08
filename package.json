@@ -10,7 +10,8 @@
     "test": "pnpm -r test",
     "build": "pnpm -r build",
     "api:dev": "pnpm --filter @tienda-alpi/api start:dev",
-    "build:precios": "pnpm --filter @tienda-alpi/precios build"
+    "build:precios": "pnpm --filter @tienda-alpi/precios build",
+    "web:dev": "pnpm --filter @tienda-alpi/web dev"
   },
   "engines": {
     "node": ">=24"
