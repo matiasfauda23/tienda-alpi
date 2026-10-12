@@ -9,19 +9,17 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
 } from '@nestjs/common';
 import { ActualizarProductoDto } from './dto/actualizar-producto.dto';
 import { ActualizarVarianteDto } from './dto/actualizar-variante.dto';
 import { CrearProductoDto } from './dto/crear-producto.dto';
 import { CrearVarianteDto } from './dto/crear-variante.dto';
+import { ReemplazarPreciosFijosDto } from './dto/reemplazar-precios-fijos.dto';
 import { ProductoDetalle } from './producto.tipos';
 import { ProductosService } from './productos.service';
-import { ReemplazarPreciosFijosDto } from './dto/reemplazar-precios-fijos.dto';
 
-/**
- * Endpoints del panel para administrar productos y variantes.
- * PENDIENTE: proteger con login (paso de autenticación). No hacer deploy antes.
- */
+/** Endpoints del panel para administrar productos y variantes (protegidos por el guard global de JWT). */
 @Controller('admin/productos')
 export class ProductosAdminController {
   constructor(private readonly productosService: ProductosService) {}
@@ -70,6 +68,16 @@ export class ProductosAdminController {
     @Body() dto: ActualizarVarianteDto,
   ): Promise<ProductoDetalle> {
     return this.productosService.actualizarVariante(id, varianteId, dto);
+  }
+
+  /** PUT /api/admin/productos/:id/variantes/:varianteId/precios-fijos → reemplaza los precios fijos por escala. */
+  @Put(':id/variantes/:varianteId/precios-fijos')
+  reemplazarPreciosFijos(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('varianteId', ParseUUIDPipe) varianteId: string,
+    @Body() dto: ReemplazarPreciosFijosDto,
+  ): Promise<ProductoDetalle> {
+    return this.productosService.reemplazarPreciosFijos(id, varianteId, dto);
   }
 
   /** DELETE /api/admin/productos/:id/variantes/:varianteId → elimina una variante. */
