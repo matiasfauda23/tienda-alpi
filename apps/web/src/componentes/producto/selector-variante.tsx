@@ -14,6 +14,7 @@ import {
   tieneOfertaVigente,
 } from '@/lib/productos';
 import { crearEnlaceWhatsApp } from '@/lib/whatsapp';
+import { AgregarAlPedido } from './agregar-al-pedido';
 import { TablaEscalas } from './tabla-escalas';
 
 type Props = { producto: Producto; escalas: EscalaPrecio[]; numeroWhatsapp: string };
@@ -54,7 +55,7 @@ function EstadoDeStock({ stock }: { stock: number }) {
   return <p className="text-sm text-texto-suave">{stock} unidades disponibles</p>;
 }
 
-/** Selector de variante: al elegir una, actualiza precio, stock, tabla de escalas y mensaje. */
+/** Selector de variante: al elegir una, actualiza precio, stock, escalas, pedido y mensaje. */
 export function SelectorVariante({ producto, escalas, numeroWhatsapp }: Props) {
   const [idSeleccionado, setIdSeleccionado] = useState(() => elegirVarianteInicial(producto.variantes).id);
   const variante = producto.variantes.find((actual) => actual.id === idSeleccionado) ?? producto.variantes[0];
@@ -95,6 +96,8 @@ export function SelectorVariante({ producto, escalas, numeroWhatsapp }: Props) {
 
       <EstadoDeStock stock={variante.stock} />
 
+      <AgregarAlPedido key={variante.id} producto={producto} variante={variante} />
+
       <TablaEscalas precios={calcularPreciosPorEscala(variante, escalas)} />
 
       {numeroWhatsapp && (
@@ -102,7 +105,7 @@ export function SelectorVariante({ producto, escalas, numeroWhatsapp }: Props) {
           href={crearEnlaceWhatsApp(numeroWhatsapp, armarMensajeConsulta(producto, variante))}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-full bg-acento px-6 py-3 text-center font-semibold text-white transition hover:bg-acento-oscuro"
+          className="rounded-full border border-acento px-6 py-3 text-center font-semibold text-acento-oscuro transition hover:bg-acento-suave"
         >
           Consultar por WhatsApp
         </a>

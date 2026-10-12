@@ -65,3 +65,35 @@ export type PaginaDeResultados<T> = {
   porPagina: number;
   totalPaginas: number;
 };
+
+export type EscalaResumida = {
+  id: string;
+  nombre: string;
+  cantidadMinima: number;
+  porcentajeDescuento: number;
+};
+
+export type ItemPedidoCalculado = {
+  varianteId: string;
+  sku: string;
+  producto: string;
+  productoSlug: string;
+  variante: string;
+  colorHex: string | null;
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
+  stockDisponible: number;
+  superaStock: boolean;
+};
+
+export type PedidoCalculado = {
+  items: ItemPedidoCalculado[];
+  totalUnidades: number;
+  escalaAplicada: EscalaResumida | null;
+  siguienteEscala: EscalaResumida | null;
+  unidadesParaSiguienteEscala: number;
+  totalPrecioLista: number;
+  total: number;
+  ahorro: number;
+};

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { IndicadorPedido } from '../pedido/indicador-pedido';
 import { Logo } from '../ui/logo';
 
 /** Secciones del menú principal. */
@@ -9,7 +10,7 @@ const ENLACES = [
   { href: '/preguntas-frecuentes', texto: 'Preguntas frecuentes' },
 ] as const;
 
-/** Encabezado con el logo y el menú. En celulares el menú se desliza de costado. */
+/** Encabezado con el logo, el menú (desplazable en celulares) y el acceso al pedido. */
 export function Encabezado() {
   return (
     <header className="border-b border-borde bg-superficie">
@@ -18,13 +19,20 @@ export function Encabezado() {
           <Logo />
         </Link>
 
-        <nav aria-label="Principal" className="flex gap-6 overflow-x-auto text-[15px] font-medium">
+        <nav
+          aria-label="Principal"
+          className="flex min-w-0 flex-1 gap-6 overflow-x-auto text-[15px] font-medium"
+        >
           {ENLACES.map((enlace) => (
             <Link key={enlace.href} href={enlace.href} className="whitespace-nowrap py-2 hover:text-acento">
               {enlace.texto}
             </Link>
           ))}
         </nav>
+
+        <div className="shrink-0">
+          <IndicadorPedido />
+        </div>
       </div>
     </header>
   );
