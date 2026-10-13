@@ -16,6 +16,7 @@ import {
 import { AvisoError, ESTILOS_ADMIN } from '../comunes';
 import { ESTILO_TARJETA } from './campo';
 import { CamposVariante } from './campos-variante';
+import { EditorPreciosFijos } from './editor-precios-fijos';
 
 type Props = { producto: Producto; alCambiar: (producto: Producto) => void };
 
@@ -24,6 +25,7 @@ function FilaVariante({ producto, variante, alCambiar }: Props & { variante: Var
   const [borrador, setBorrador] = useState(() => crearBorradorVariante(variante));
   const [mostrarErrores, setMostrarErrores] = useState(false);
   const [guardado, setGuardado] = useState(false);
+  const [verPrecios, setVerPrecios] = useState(false);
   const { ejecutar, enCurso, error } = useAccionAdmin();
   const errores = validarBorradorVariante(borrador);
   const hayCambios = JSON.stringify(borrador) !== JSON.stringify(crearBorradorVariante(variante));
@@ -80,6 +82,16 @@ function FilaVariante({ producto, variante, alCambiar }: Props & { variante: Var
         >
           Eliminar
         </button>
+        <button
+          type="button"
+          onClick={() => setVerPrecios(!verPrecios)}
+          aria-expanded={verPrecios}
+          className="text-sm font-semibold text-acento-oscuro hover:underline"
+        >
+          {verPrecios
+            ? 'Ocultar precios por escala'
+            : `Precios por escala${variante.preciosFijos.length > 0 ? ` (${variante.preciosFijos.length} fijos)` : ''}`}
+        </button>
         {guardado && (
           <p role="status" className="text-sm text-acento-oscuro">
             Cambios guardados.
@@ -87,6 +99,7 @@ function FilaVariante({ producto, variante, alCambiar }: Props & { variante: Var
         )}
       </div>
       <AvisoError mensaje={error} />
+      {verPrecios && <EditorPreciosFijos producto={producto} variante={variante} alCambiar={alCambiar} />}
     </li>
   );
 }
