@@ -80,20 +80,35 @@ function refrescarSesion(): Promise<boolean> {
   return refrescoEnCurso;
 }
 
-/** Llama a la API del panel; si el acceso venció, refresca la sesión una vez y reintenta. */
-export async function pedirAdmin<T>(ruta: string, opciones: OpcionesPedido = {}): Promise<T> {
+/** Hace la llamada; si el acceso venció, refresca la sesión una vez y reintenta. */
+async function llamarConSesion(ruta: string, opciones: OpcionesPedido): Promise<Response> {
   const puedeRefrescar = !RUTAS_SIN_REFRESCO.includes(ruta);
   let respuesta = await llamar(ruta, opciones);
-
   if (respuesta.status === 401 && puedeRefrescar) {
     if (!(await refrescarSesion())) throw new ErrorDeSesion();
     respuesta = await llamar(ruta, opciones);
     if (respuesta.status === 401) throw new ErrorDeSesion();
   }
+  return respuesta;
+}
 
+/** Lanza ErrorDeApiAdmin con el mensaje de la API si la respuesta no fue exitosa. */
+async function verificarRespuesta(respuesta: Response): Promise<void> {
+  if (respuesta.ok) return;
   const cuerpo = await leerCuerpo(respuesta);
-  if (!respuesta.ok) {
-    throw new ErrorDeApiAdmin(respuesta.status, extraerMensajeDeError(cuerpo, respuesta.status));
-  }
-  return cuerpo as T;
+  throw new ErrorDeApiAdmin(respuesta.status, extraerMensajeDeError(cuerpo, respuesta.status));
+}
+
+/** Llama a la API del panel y devuelve el JSON de la respuesta. */
+export async function pedirAdmin<T>(ruta: string, opciones: OpcionesPedido = {}): Promise<T> {
+  const respuesta = await llamarConSesion(ruta, opciones);
+  await verificarRespuesta(respuesta);
+  return (await leerCuerpo(respuesta)) as T;
+}
+
+/** Descarga un archivo del panel (por ejemplo, la planilla) como Blob. */
+export async function descargarAdmin(ruta: string): Promise<Blob> {
+  const respuesta = await llamarConSesion(ruta, {});
+  await verificarRespuesta(respuesta);
+  return respuesta.blob();
 }

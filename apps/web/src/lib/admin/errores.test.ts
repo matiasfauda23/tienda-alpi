@@ -8,6 +8,7 @@ describe('describirError', () => {
   });
 
   it('traduce los errores que NestJS genera en inglés', () => {
+    expect(describirError(new ErrorDeApiAdmin(413, 'File too large'))).toContain('máximo 2 MB');
     expect(describirError(new ErrorDeApiAdmin(429, 'ThrottlerException'))).toContain('Demasiados pedidos');
     expect(describirError(new ErrorDeApiAdmin(500, 'Internal server error'))).toContain('error en el servidor');
   });
