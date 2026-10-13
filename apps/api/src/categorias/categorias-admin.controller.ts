@@ -17,7 +17,6 @@ import { CrearCategoriaDto } from './dto/crear-categoria.dto';
 
 /**
  * Endpoints del panel para administrar categorías.
- * PENDIENTE: proteger con login (paso de autenticación). No hacer deploy antes.
  */
 @Controller('admin/categorias')
 export class CategoriasAdminController {

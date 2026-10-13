@@ -5,7 +5,6 @@ import { EscalasService } from './escalas.service';
 
 /**
  * Endpoint del panel para configurar las escalas.
- * PENDIENTE: proteger con login (paso de autenticación). No hacer deploy antes.
  */
 @Controller('admin/escalas')
 export class EscalasAdminController {
