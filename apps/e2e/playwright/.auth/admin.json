@@ -1,0 +1,25 @@
+{
+  "cookies": [
+    {
+      "name": "alpi_refresh",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzZTdlNDEzNC1jNWVjLTQ4MTMtODE0Ny1iNWVkYjdkZDhkN2QiLCJlbWFpbCI6ImUyZUB0aWVuZGFhbHBpLnRlc3QiLCJqdGkiOiIxODIyZjljMC0zOTE5LTQyNjYtOTRkMy02MjI2ZTU2ZGI3YzYiLCJpYXQiOjE3OTE5MjMwMjYsImV4cCI6MTc5MjUyNzgyNn0.WjW2-M5ravkMSvkNl0llK2PGeDGIM3QLhqiFZjl7Ae8",
+      "domain": "localhost",
+      "path": "/api/auth",
+      "expires": 1792527826.486204,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Strict"
+    },
+    {
+      "name": "alpi_acceso",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzZTdlNDEzNC1jNWVjLTQ4MTMtODE0Ny1iNWVkYjdkZDhkN2QiLCJlbWFpbCI6ImUyZUB0aWVuZGFhbHBpLnRlc3QiLCJpYXQiOjE3OTE5MjMwMjYsImV4cCI6MTc5MTkyMzkyNn0.ByIcN0XrtpIar5QQLFubNRGNuwrU-HfjqNCVFtiq8Cg",
+      "domain": "localhost",
+      "path": "/api",
+      "expires": 1791923926.485918,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Strict"
+    }
+  ],
+  "origins": []
+}

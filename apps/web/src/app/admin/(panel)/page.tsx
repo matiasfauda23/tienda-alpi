@@ -32,3 +32,6 @@ export default function PaginaInicioPanel() {
     </>
   );
 }
+
+// El panel depende de la sesión del navegador: no se puede validar la navegación instantánea
+export const instant = false;

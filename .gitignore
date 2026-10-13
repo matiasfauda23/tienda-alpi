@@ -28,3 +28,5 @@ Thumbs.db
 # Caché de herramientas
 .turbo/
 *.tsbuildinfo
+.next-e2e/
+playwright/.auth/

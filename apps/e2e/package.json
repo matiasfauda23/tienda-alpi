@@ -1,0 +1,12 @@
+{
+  "name": "@tienda-alpi/e2e",
+  "private": true,
+  "scripts": {
+    "test:e2e": "playwright test",
+    "reporte": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^26.6.5"
+  }
+}

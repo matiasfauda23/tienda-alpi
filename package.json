@@ -13,7 +13,8 @@
     "build:precios": "pnpm --filter @tienda-alpi/precios build",
     "web:dev": "pnpm --filter @tienda-alpi/web dev",
     "tipos": "pnpm --filter @tienda-alpi/api exec tsc --noEmit -p tsconfig.build.json && pnpm --filter @tienda-alpi/web exec tsc --noEmit",
-    "verificar": "pnpm build:precios && pnpm tipos && pnpm test"
+    "verificar": "pnpm build:precios && pnpm tipos && pnpm test",
+    "e2e": "pnpm --filter @tienda-alpi/e2e test:e2e"
   },
   "engines": {
     "node": ">=24"
