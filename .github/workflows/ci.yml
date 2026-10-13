@@ -1,0 +1,47 @@
+# Verifica tipos y tests en cada push o pull request a main.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Solo permiso de lectura: este workflow no necesita modificar nada del repositorio
+permissions:
+  contents: read
+
+# Si subís dos commits seguidos, cancela la verificación vieja y corre solo la nueva
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: Tipos y tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Prisma necesita una URL para generar el cliente; los tests no se conectan a ninguna base
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v5
+
+      - name: Instalar pnpm (la versión del campo packageManager)
+        uses: pnpm/action-setup@v4
+
+      - name: Instalar Node (la versión de .nvmrc)
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Generar el cliente de Prisma
+        run: pnpm --filter @tienda-alpi/api exec prisma generate
+
+      - name: Verificar tipos y correr tests
+        run: pnpm verificar

@@ -11,7 +11,9 @@
     "build": "pnpm -r build",
     "api:dev": "pnpm --filter @tienda-alpi/api start:dev",
     "build:precios": "pnpm --filter @tienda-alpi/precios build",
-    "web:dev": "pnpm --filter @tienda-alpi/web dev"
+    "web:dev": "pnpm --filter @tienda-alpi/web dev",
+    "tipos": "pnpm --filter @tienda-alpi/api exec tsc --noEmit -p tsconfig.build.json && pnpm --filter @tienda-alpi/web exec tsc --noEmit",
+    "verificar": "pnpm build:precios && pnpm tipos && pnpm test"
   },
   "engines": {
     "node": ">=24"
