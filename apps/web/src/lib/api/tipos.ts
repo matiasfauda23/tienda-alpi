@@ -97,3 +97,5 @@ export type PedidoCalculado = {
   total: number;
   ahorro: number;
 };
+
+export type Condiciones = ContenidoSitio['condiciones'];
