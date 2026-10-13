@@ -13,6 +13,7 @@ import { ProductosModule } from './productos/productos.module';
 import { AuthModule } from './auth/auth.module';
 import { SaludModule } from './salud/salud.module';
 import { AuditoriaModule } from './auditoria/auditoria.module';
+import { RevalidacionModule } from './revalidacion/revalidacion.module';
 
 /** Módulo raíz: configuración, límite de peticiones y módulos de la API. */
 @Module({
@@ -30,6 +31,7 @@ import { AuditoriaModule } from './auditoria/auditoria.module';
     ContenidoModule,
     AuditoriaModule,
     PlanillasModule,
+    RevalidacionModule,
   ],
   providers: [
     // Aplica el límite de peticiones a todos los endpoints

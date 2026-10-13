@@ -18,8 +18,10 @@ import { CrearVarianteDto } from './dto/crear-variante.dto';
 import { ReemplazarPreciosFijosDto } from './dto/reemplazar-precios-fijos.dto';
 import { ProductoDetalle } from './producto.tipos';
 import { ProductosService } from './productos.service';
+import { Revalidar } from '../revalidacion/revalidar.decorator';
 
 /** Endpoints del panel para administrar productos y variantes (protegidos por el guard global de JWT). */
+@Revalidar('productos')
 @Controller('admin/productos')
 export class ProductosAdminController {
   constructor(private readonly productosService: ProductosService) {}

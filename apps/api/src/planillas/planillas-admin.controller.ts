@@ -16,6 +16,7 @@ import { AdministradorActual } from '../auth/decoradores/administrador-actual.de
 import { ComparacionPlanilla, ResultadoImportacion } from './planilla.tipos';
 import type { ArchivoSubido } from './planilla.tipos';
 import { PlanillasService } from './planillas.service';
+import { Revalidar } from '../revalidacion/revalidar.decorator';
 
 /** Límites del archivo subido: un solo archivo de hasta 2 MB (si se pasa, Nest responde 413). */
 const OPCIONES_SUBIDA = { limits: { fileSize: 2 * 1024 * 1024, files: 1 } };
@@ -24,6 +25,7 @@ const OPCIONES_SUBIDA = { limits: { fileSize: 2 * 1024 * 1024, files: 1 } };
 const TIPO_XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 /** Endpoints del panel para exportar e importar precios y stock (requieren sesión iniciada). */
+@Revalidar('productos')
 @Controller('admin/planillas')
 export class PlanillasAdminController {
   constructor(private readonly planillasService: PlanillasService) {}
@@ -42,6 +44,7 @@ export class PlanillasAdminController {
 
   /** POST /api/admin/planillas/vista-previa → muestra qué cambiaría, sin guardar nada. */
   @NoAuditar() // No cambia nada
+  @Revalidar() // Tampoco hace falta avisar a la web
   @Post('vista-previa')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('archivo', OPCIONES_SUBIDA))

@@ -14,10 +14,12 @@ import { CategoriaResumen } from './categoria.tipos';
 import { CategoriasService } from './categorias.service';
 import { ActualizarCategoriaDto } from './dto/actualizar-categoria.dto';
 import { CrearCategoriaDto } from './dto/crear-categoria.dto';
+import { Revalidar } from '../revalidacion/revalidar.decorator';
 
 /**
  * Endpoints del panel para administrar categorías.
  */
+@Revalidar('categorias', 'productos')
 @Controller('admin/categorias')
 export class CategoriasAdminController {
   constructor(private readonly categoriasService: CategoriasService) {}

@@ -5,8 +5,10 @@ import { BannerDto } from './dto/banner.dto';
 import { CondicionesDto } from './dto/condiciones.dto';
 import { ContactoDto } from './dto/contacto.dto';
 import { FaqDto } from './dto/faq.dto';
+import { Revalidar } from '../revalidacion/revalidar.decorator';
 
 /** Endpoints del panel para editar el contenido del sitio (requieren sesión iniciada). */
+@Revalidar('contenido')
 @Controller('admin/contenido')
 export class ContenidoAdminController {
   constructor(private readonly contenidoService: ContenidoService) {}
